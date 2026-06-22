@@ -1,0 +1,413 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=430, initial-scale=1.0">
+<title>PUBG 战术助手</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Microsoft YaHei",sans-serif;color:#EEE;max-width:430px;margin:0 auto;min-height:100vh;background:#0F1117;overflow-x:hidden}
+.header{height:56px;display:flex;align-items:center;padding:0 16px;background:rgba(26,29,35,0.95);border-bottom:1px solid rgba(255,255,255,0.08)}
+.header .back{color:#AAA;font-size:18px;cursor:pointer;background:none;border:none;display:none}
+.header .title{color:#FFF;font-size:17px;font-weight:bold;margin-left:12px}
+.page{display:none;padding:16px 16px 90px}
+.page.active{display:block}
+.module-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.module-card{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:18px;padding:24px 16px;text-align:center;cursor:pointer}
+.module-card:active{transform:scale(0.95)}
+.module-card .mc-icon{font-size:36px;margin-bottom:10px}
+.module-card .mc-title{font-size:16px;font-weight:bold;color:#FFF;margin-bottom:6px}
+.module-card .mc-desc{font-size:11px;color:rgba(255,255,255,0.5)}
+.home-banner{background:linear-gradient(135deg,rgba(74,144,217,0.2),rgba(229,57,53,0.15));border-radius:16px;padding:16px 18px;margin-bottom:18px;border:1px solid rgba(255,255,255,0.08)}
+.home-banner .hb-title{font-size:15px;font-weight:bold;color:#FFF}
+.home-banner .hb-sub{font-size:11px;color:rgba(255,255,255,0.5);margin-top:4px}
+
+.search-bar{display:flex;align-items:center;background:rgba(255,255,255,0.08);border-radius:12px;padding:10px 14px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.1)}
+.search-bar input{border:none;outline:none;flex:1;font-size:14px;color:#FFF;background:transparent}
+.search-bar input::placeholder{color:rgba(255,255,255,0.35)}
+.chips{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.chip{padding:6px 14px;border-radius:16px;font-size:11px;cursor:pointer;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7)}
+.chip.active{background:#4A90D9;color:#FFF;border-color:#4A90D9}
+.weapon-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+.weapon-card{background:#FFF;border-radius:14px;overflow:hidden;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.2);border:2px solid transparent}
+.weapon-card:active{transform:scale(0.97)}
+.weapon-card .card-img{height:70px;display:flex;align-items:center;justify-content:center}
+.weapon-card .card-img img{height:54px;filter:drop-shadow(0 3px 5px rgba(0,0,0,0.25))}
+.weapon-card .card-img.AR{background:linear-gradient(135deg,#E8F0FE,#D0E0FF)}
+.weapon-card .card-img.SR{background:linear-gradient(135deg,#FFE8E8,#FFD0D0)}
+.weapon-card .card-img.DMR{background:linear-gradient(135deg,#FFF0E8,#FFE0D0)}
+.weapon-card .card-img.SMG{background:linear-gradient(135deg,#E8F8E8,#D0F0D0)}
+.weapon-card .card-info{padding:8px 10px}
+.weapon-card .card-name{font-size:12px;font-weight:bold;color:#333}
+.weapon-card .card-type{font-size:9px;color:#999}
+
+.slot-bar{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.07);border-radius:14px;padding:10px 14px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.1)}
+.slot-bar .slot{flex:1;text-align:center;padding:8px;background:rgba(255,255,255,0.05);border-radius:10px;cursor:pointer;min-height:44px;display:flex;align-items:center;justify-content:center;gap:6px;border:2px solid transparent}
+.slot-bar .slot.pick{border-color:#4A90D9}
+.slot-bar .slot img{width:30px;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.3))}
+.slot-bar .slot span{font-size:12px;color:#FFF}
+.slot-bar .vs{font-size:12px;font-weight:bold;color:rgba(255,255,255,0.4)}
+
+.cmp-table{background:rgba(255,255,255,0.06);border-radius:14px;padding:14px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.08)}
+.cmp-row{display:flex;align-items:center;padding:5px 0;font-size:11px;border-bottom:1px solid rgba(255,255,255,0.05)}
+.cmp-row:last-child{border:none}
+.cmp-lab{color:rgba(255,255,255,0.5);width:48px}
+.cmp-v1{width:50px;text-align:center;font-weight:bold;color:#4A90D9}
+.cmp-vs{width:20px;text-align:center;color:rgba(255,255,255,0.25);font-size:9px}
+.cmp-v2{width:50px;text-align:center;font-weight:bold;color:#E53935}
+.cmp-badge{padding:2px 8px;border-radius:8px;font-size:9px;font-weight:bold;text-align:center;width:56px}
+.cmp-badge.win1{background:rgba(74,144,217,0.2);color:#4A90D9}
+.cmp-badge.win2{background:rgba(229,57,53,0.2);color:#E53935}
+.cmp-badge.tie{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.4)}
+
+.ct-card{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:16px;margin-bottom:14px}
+.ct-card .ct-icon{font-size:28px;margin-bottom:8px}
+.ct-card .ct-title{font-size:15px;font-weight:bold;color:#FFF;margin-bottom:10px}
+.ct-card .ct-text{font-size:12px;color:rgba(255,255,255,0.6);line-height:1.7}
+.ct-card .ct-tags{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.ct-card .ct-tags span{font-size:11px;color:rgba(255,255,255,0.45);background:rgba(255,255,255,0.06);padding:4px 10px;border-radius:8px}
+
+.vc-row{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,0.06);border-radius:14px;padding:14px 16px;margin-bottom:10px;border:1px solid rgba(255,255,255,0.08)}
+.vc-row .vc-ico{font-size:28px}
+.vc-row .vc-name{font-size:14px;font-weight:bold;color:#FFF}
+.vc-row .vc-info{font-size:11px;color:rgba(255,255,255,0.45)}
+.vc-row .vc-hp{font-size:11px;color:#43A047;margin-left:auto;font-weight:bold}
+
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:430px;height:70px;background:rgba(26,29,35,0.95);display:flex;border-top:1px solid rgba(255,255,255,0.08);z-index:50}
+.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,0.35);font-size:10px}
+.nav-tab.active{color:#4A90D9;font-weight:bold}
+.nav-tab .nav-icon{font-size:17px;margin-bottom:2px}
+
+.no-res{text-align:center;padding:40px;color:rgba(255,255,255,0.4);font-size:13px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <button class="back" id="btnBack" onclick="goHome()">&#x2190;</button>
+  <span class="title" id="headerTitle">PUBG 战术助手</span>
+</div>
+
+<!-- HOME -->
+<div class="page active" id="page-home">
+  <div class="home-banner">
+    <div class="hb-title">&#x1F3AE; PUBG 战术助手</div>
+    <div class="hb-sub">吃鸡必备 · 武器对比 · 玩法攻略 · 装备载具全解析</div>
+  </div>
+  <div class="module-grid">
+    <div class="module-card" onclick="goPage('compare')">
+      <div class="mc-icon">&#x2694;&#xFE0F;</div>
+      <div class="mc-title">枪械对比</div>
+      <div class="mc-desc">8款主流枪械数据对比，帮你选出最佳搭档</div>
+    </div>
+    <div class="module-card" onclick="goPage('gameplay')">
+      <div class="mc-icon">&#x1F3AE;</div>
+      <div class="mc-title">游戏玩法</div>
+      <div class="mc-desc">跳伞·缩圈·配装·枪法·战术全方位攻略</div>
+    </div>
+    <div class="module-card" onclick="goPage('equip')">
+      <div class="mc-icon">&#x1F3A8;</div>
+      <div class="mc-title">装备介绍</div>
+      <div class="mc-desc">头盔·护甲·背包等级详解，合理搭配提升生存率</div>
+    </div>
+    <div class="module-card" onclick="goPage('vehicle')">
+      <div class="mc-icon">&#x1F698;</div>
+      <div class="mc-title">载具介绍</div>
+      <div class="mc-desc">车辆·摩托·船只全解析，选对载具快人一步</div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPARE -->
+<div class="page" id="page-compare">
+  <div class="search-bar">
+    <span style="margin-right:8px">&#x1F50D;</span>
+    <input type="text" id="searchInput" placeholder="搜索武器..." oninput="doSearch()">
+  </div>
+  <div class="chips" id="chips">
+    <span class="chip active" onclick="setCat('all',this)">全部</span>
+    <span class="chip" onclick="setCat('AR',this)">突击步枪</span>
+    <span class="chip" onclick="setCat('SMG',this)">冲锋枪</span>
+    <span class="chip" onclick="setCat('SR',this)">狙击枪</span>
+    <span class="chip" onclick="setCat('DMR',this)">精确射手步枪</span>
+  </div>
+  <div class="slot-bar">
+    <div class="slot pick" id="slotA" onclick="pickSlot(0)"></div>
+    <div class="vs">VS</div>
+    <div class="slot" id="slotB" onclick="pickSlot(1)"></div>
+  </div>
+  <div class="cmp-table" id="cmpTable"></div>
+  <div class="weapon-grid" id="weaponGrid"></div>
+  <div class="no-res" id="noRes" style="display:none">&#x1F50D; 没找到相关武器</div>
+</div>
+
+<!-- GAMEPLAY -->
+<div class="page" id="page-gameplay">
+  <div class="ct-card">
+    <div class="ct-icon">&#x1FA82;</div>
+    <div class="ct-title">1. 跳伞选点</div>
+    <div class="ct-text">开局跳伞选择落点，是整局游戏的第一关键决策。热门城区（如Pochinki、School）物资丰富但竞争激烈，落地即成盒风险高。野区发育更稳妥，适合新手过渡。建议标点后垂直下落，最快落地抢枪。</div>
+    <div class="ct-tags"><span>热门：Pochinki</span><span>中等：Rozhok</span><span>冷门：野区房区</span></div>
+  </div>
+  <div class="ct-card">
+    <div class="ct-icon">&#x1F5FA;&#xFE0F;</div>
+    <div class="ct-title">2. 缩圈机制</div>
+    <div class="ct-text">安全区（白圈）逐步缩小，蓝圈伤害随阶段递增。前两圈伤害较低可抗毒搜物资，后期蓝圈伤害极高必须提前进圈。占据圈中心或圈边有利地形是获胜关键。</div>
+    <div class="ct-tags"><span>第1圈：低伤害</span><span>第4圈+：致命</span><span>决赛圈：极小</span></div>
+  </div>
+  <div class="ct-card">
+    <div class="ct-icon">&#x1F52B;</div>
+    <div class="ct-title">3. 武器配装</div>
+    <div class="ct-text">经典组合：步枪（M416/Beryl）+ 连狙（Mini14/SKS）或栓狙（Kar98k）。配件优先补偿器+垂直握把减后坐力，6倍镜缩3倍是中远距离最优配置。</div>
+    <div class="ct-tags"><span>步枪+连狙</span><span>冲锋枪+栓狙</span><span>双步枪</span></div>
+  </div>
+  <div class="ct-card">
+    <div class="ct-icon">&#x1F3AF;</div>
+    <div class="ct-title">4. 枪法技巧</div>
+    <div class="ct-text">压枪控制后坐力，预瞄爆头线，听声辨位。6倍镜调3倍是最实用的中远配置，红点/全息适合50m内近战。</div>
+    <div class="ct-tags"><span>压枪下拉</span><span>预瞄爆头线</span><span>听声辨位</span></div>
+  </div>
+  <div class="ct-card">
+    <div class="ct-icon">&#x1F977;</div>
+    <div class="ct-title">5. 战术策略</div>
+    <div class="ct-text">利用掩体、烟雾弹、载具转移。决赛圈伏地或主动出击，依局势灵活应变。善用投掷物（手雷/燃烧瓶）打破僵局。</div>
+    <div class="ct-tags"><span>烟雾弹掩护</span><span>载具当掩体</span><span>投掷物破局</span></div>
+  </div>
+</div>
+
+<!-- EQUIP -->
+<div class="page" id="page-equip">
+  <div class="ct-card">
+    <div class="ct-icon">&#x1FA96;</div>
+    <div class="ct-title">头盔</div>
+    <div class="ct-text">3级头可扛Kar98k一枪爆头不死。耐久度耗尽后消失，注意及时更换。</div>
+    <div style="display:flex;gap:10px;margin-top:12px">
+      <div class="ct-card" style="flex:1;margin:0;text-align:center;background:rgba(255,255,255,0.03);padding:12px 8px">
+        <img src="一级头.webp" style="width:48px;height:48px;object-fit:contain" alt="1级头">
+        <div class="ct-title" style="font-size:12px;margin-top:6px;margin-bottom:4px">1级头盔</div>
+        <div class="ct-text" style="font-size:10px">减伤30%<br>耐久80<br>全图常见</div>
+      </div>
+      <div class="ct-card" style="flex:1;margin:0;text-align:center;background:rgba(255,255,255,0.03);padding:12px 8px">
+        <img src="二级头.webp" style="width:48px;height:48px;object-fit:contain" alt="2级头">
+        <div class="ct-title" style="font-size:12px;margin-top:6px;margin-bottom:4px">2级头盔</div>
+        <div class="ct-text" style="font-size:10px">减伤40%<br>耐久150<br>建筑刷新</div>
+      </div>
+      <div class="ct-card" style="flex:1;margin:0;text-align:center;background:rgba(255,255,255,0.03);padding:12px 8px">
+        <img src="三级头.webp" style="width:48px;height:48px;object-fit:contain" alt="3级头">
+        <div class="ct-title" style="font-size:12px;margin-top:6px;margin-bottom:4px">3级头盔&#x2B50;</div>
+        <div class="ct-text" style="font-size:10px">减伤55%<br>耐久230<br>仅空投掉落</div>
+      </div>
+    </div>
+  </div>
+  <div class="ct-card">
+    <div class="ct-icon">&#x1F9E5;</div>
+    <div class="ct-title">护甲（防弹衣）</div>
+    <div class="ct-text">3级甲大幅提升对枪存活率。残血甲防护效果不变但随时可能损坏。</div>
+    <div style="display:flex;gap:10px;margin-top:12px">
+      <div class="ct-card" style="flex:1;margin:0;text-align:center;background:rgba(255,255,255,0.03);padding:12px 8px">
+        <img src="一级甲.webp" style="width:48px;height:48px;object-fit:contain" alt="1级甲">
+        <div class="ct-title" style="font-size:12px;margin-top:6px;margin-bottom:4px">1级护甲</div>
+        <div class="ct-text" style="font-size:10px">减伤30%<br>耐久200<br>全图常见</div>
+      </div>
+      <div class="ct-card" style="flex:1;margin:0;text-align:center;background:rgba(255,255,255,0.03);padding:12px 8px">
+        <img src="二级甲.webp" style="width:48px;height:48px;object-fit:contain" alt="2级甲">
+        <div class="ct-title" style="font-size:12px;margin-top:6px;margin-bottom:4px">2级护甲</div>
+        <div class="ct-text" style="font-size:10px">减伤40%<br>耐久220<br>建筑刷新</div>
+      </div>
+      <div class="ct-card" style="flex:1;margin:0;text-align:center;background:rgba(255,255,255,0.03);padding:12px 8px">
+        <img src="三级甲.webp" style="width:48px;height:48px;object-fit:contain" alt="3级甲">
+        <div class="ct-title" style="font-size:12px;margin-top:6px;margin-bottom:4px">3级护甲&#x2B50;</div>
+        <div class="ct-text" style="font-size:10px">减伤55%<br>耐久250<br>仅空投掉落</div>
+      </div>
+    </div>
+  </div>
+  <div class="ct-card">
+    <div class="ct-icon">&#x1F392;</div>
+    <div class="ct-title">背包</div>
+    <div class="ct-text">背包决定容量上限。满配M416约需200发5.56子弹，合理规划空间是高手基本功。</div>
+    <div style="display:flex;gap:10px;margin-top:12px">
+      <div class="ct-card" style="flex:1;margin:0;text-align:center;background:rgba(255,255,255,0.03);padding:12px 8px">
+        <img src="一级包.webp" style="width:48px;height:48px;object-fit:contain" alt="1级包">
+        <div class="ct-title" style="font-size:12px;margin-top:6px;margin-bottom:4px">1级背包</div>
+        <div class="ct-text" style="font-size:10px">容量+150<br>全图常见</div>
+      </div>
+      <div class="ct-card" style="flex:1;margin:0;text-align:center;background:rgba(255,255,255,0.03);padding:12px 8px">
+        <img src="二级包.webp" style="width:48px;height:48px;object-fit:contain" alt="2级包">
+        <div class="ct-title" style="font-size:12px;margin-top:6px;margin-bottom:4px">2级背包</div>
+        <div class="ct-text" style="font-size:10px">容量+200<br>建筑刷新</div>
+      </div>
+      <div class="ct-card" style="flex:1;margin:0;text-align:center;background:rgba(255,255,255,0.03);padding:12px 8px">
+        <img src="三级包.webp" style="width:48px;height:48px;object-fit:contain" alt="3级包">
+        <div class="ct-title" style="font-size:12px;margin-top:6px;margin-bottom:4px">3级背包&#x2B50;</div>
+        <div class="ct-text" style="font-size:10px">容量+250<br>空投/低概率刷新</div>
+      </div>
+    </div>
+  </div>
+  <div class="ct-card">
+    <div class="ct-icon">&#x1F94A;</div>
+    <div class="ct-title">其他装备与医疗</div>
+    <div class="ct-text">吉利服：仅空投掉落，决赛圈神器。医疗配比：3急救包+5绷带+2止痛药+3能量饮料为最优携带方案。</div>
+  </div>
+</div><!-- VEHICLE -->
+<div class="page" id="page-vehicle">
+  <div class="ct-card">
+    <div class="ct-icon">&#x1F697;</div>
+    <div class="ct-title">四轮载具</div>
+    <div class="ct-text">四轮载具提供稳定移动和一定防护。</div>
+  </div>
+  <div class="vc-row"><img src="轿车.png" style="width:52px;height:40px;object-fit:contain" alt="Dacia"><div><div class="vc-name">Dacia 轿车</div><div class="vc-info">115km/h · 4座 · 公路优</div></div><div class="vc-hp">HP:1800</div></div>
+  <div class="vc-row"><img src="吉普车.png" style="width:52px;height:40px;object-fit:contain" alt="UAZ"><div><div class="vc-name">UAZ 吉普车</div><div class="vc-info">100km/h · 4座 · 越野优</div></div><div class="vc-hp">HP:2200</div></div>
+  <div class="vc-row"><img src="小巴.png" style="width:52px;height:40px;object-fit:contain" alt="小巴"><div><div class="vc-name">Minibus 小巴</div><div class="vc-info">90km/h · 6座 · 团队移动</div></div><div class="vc-hp">HP:3000</div></div>
+  <div class="vc-row"><img src="肌肉跑车.png" style="width:52px;height:40px;object-fit:contain" alt="Mirado"><div><div class="vc-name">Mirado 肌肉跑车</div><div class="vc-info">130km/h · 4座 · 极限速度</div></div><div class="vc-hp">HP:1600</div></div>
+
+  <div class="ct-card" style="margin-top:16px">
+    <div class="ct-icon">&#x1F3CD;&#xFE0F;</div>
+    <div class="ct-title">两轮/三轮载具</div>
+    <div class="ct-text">速度快但防护差，适合快速转移。</div>
+  </div>
+  <div class="vc-row"><img src="摩托车.png" style="width:52px;height:40px;object-fit:contain" alt="摩托车"><div><div class="vc-name">Motorcycle 摩托车</div><div class="vc-info">140km/h · 2座 · 最快陆地</div></div><div class="vc-hp">HP:800</div></div>
+  <div class="vc-row"><img src="小摩托.png" style="width:52px;height:40px;object-fit:contain" alt="小摩托"><div><div class="vc-name">Scooter 小摩托</div><div class="vc-info">100km/h · 2座 · 安静灵活</div></div><div class="vc-hp">HP:600</div></div>
+  <div class="vc-row"><img src="三轮车.png" style="width:52px;height:40px;object-fit:contain" alt="三轮车"><div><div class="vc-name">Tukshai 三轮车</div><div class="vc-info">80km/h · 3座 · Sanhok专属</div></div><div class="vc-hp">HP:1000</div></div>
+
+  <div class="ct-card" style="margin-top:16px">
+    <div class="ct-icon">&#x26F5;&#xFE0F;</div>
+    <div class="ct-title">水上/特殊载具</div>
+  </div>
+  <div class="vc-row"><img src="滑翔机.png" style="width:52px;height:40px;object-fit:contain" alt="滑翔机"><div><div class="vc-name">Motor Glider 滑翔机</div><div class="vc-info">80km/h · 2座 · 空中飞行</div></div><div class="vc-hp">HP:500</div></div>
+  <div class="vc-row"><img src="快艇.png" style="width:52px;height:40px;object-fit:contain" alt="快艇"><div><div class="vc-name">Boat 快艇</div><div class="vc-info">80km/h · 4座 · 水域专用</div></div><div class="vc-hp">HP:1500</div></div>
+  <div class="vc-row"><img src="水上摩托.png" style="width:52px;height:40px;object-fit:contain" alt="水上摩托"><div><div class="vc-name">Aquarail 水上摩托</div><div class="vc-info">90km/h · 2座 · 灵活水上</div></div><div class="vc-hp">HP:800</div></div>
+  <div class="vc-row"><img src="装甲车.png" style="width:52px;height:40px;object-fit:contain" alt="装甲车"><div><div class="vc-name">BRDM-2 装甲车</div><div class="vc-info">75km/h · 4座 · 防弹·空投</div></div><div class="vc-hp">HP:4000</div></div>
+</div><div class="bottom-nav">
+  <span class="nav-tab active" onclick="goPage('home')"><span class="nav-icon">&#x1F3E0;</span>首页</span>
+  <span class="nav-tab" onclick="goPage('compare')"><span class="nav-icon">&#x2694;&#xFE0F;</span>对比</span>
+  <span class="nav-tab" onclick="goPage('gameplay')"><span class="nav-icon">&#x1F3AE;</span>玩法</span>
+  <span class="nav-tab" onclick="goPage('equip')"><span class="nav-icon">&#x1F3A8;</span>装备</span>
+  <span class="nav-tab" onclick="goPage('vehicle')"><span class="nav-icon">&#x1F698;</span>载具</span>
+</div>
+
+<script>
+var WEAPONS = [
+  {id:"HK416",name:"M416",type:"AR",tname:"突击步枪",dmg:41,rate:700,recoil:50,range:500,mag:30,tier:"S",img:"Icon_weapon_HK416.webp"},
+  {id:"AKM",name:"AKM",type:"AR",tname:"突击步枪",dmg:47,rate:600,recoil:75,range:480,mag:30,tier:"A",img:"AKM.webp"},
+  {id:"M762",name:"Beryl M762",type:"AR",tname:"突击步枪",dmg:46,rate:680,recoil:70,range:450,mag:30,tier:"S",img:"Icon_weapon_M762.webp"},
+  {id:"SCAR-L",name:"SCAR-L",type:"AR",tname:"突击步枪",dmg:41,rate:625,recoil:45,range:500,mag:30,tier:"A",img:"Icon_weapon_SCAR-L.webp"},
+  {id:"Kar98k",name:"Kar98k",type:"SR",tname:"狙击枪",dmg:75,rate:40,recoil:80,range:800,mag:5,tier:"S",img:"Icon_weapon_Kar98k.webp"},
+  {id:"Mini14",name:"Mini14",type:"DMR",tname:"精确射手步枪",dmg:44,rate:480,recoil:30,range:700,mag:20,tier:"A",img:"Icon_weapon_Mini14.webp"},
+  {id:"SKS",name:"SKS",type:"DMR",tname:"精确射手步枪",dmg:53,rate:400,recoil:55,range:600,mag:10,tier:"A",img:"Icon_weapon_SKS.webp"},
+  {id:"UMP",name:"UMP45",type:"SMG",tname:"冲锋枪",dmg:39,rate:650,recoil:25,range:300,mag:30,tier:"B",img:"Icon_weapon_UMP.webp"}
+];
+
+var slotIdx = [0, 1];   // indices into WEAPONS
+var pickFor = 0;         // which slot we're picking for
+var cat = "all";
+
+// ---- page switching ----
+function goPage(p) {
+  document.querySelectorAll(".page").forEach(function(el){ el.classList.remove("active"); });
+  var t = document.getElementById("page-"+p);
+  if(t) t.classList.add("active");
+
+  var titles = {home:"PUBG 战术助手", compare:"枪械对比", gameplay:"游戏玩法", equip:"装备介绍", vehicle:"载具介绍"};
+  document.getElementById("headerTitle").textContent = titles[p]||"";
+  document.getElementById("btnBack").style.display = (p==="home")?"none":"block";
+
+  document.querySelectorAll(".bottom-nav .nav-tab").forEach(function(el){ el.classList.remove("active"); });
+  var ntabs = document.querySelectorAll(".bottom-nav .nav-tab");
+  for(var i=0; i<ntabs.length; i++) {
+    if(ntabs[i].getAttribute("onclick") && ntabs[i].getAttribute("onclick").indexOf("'"+p+"'")>=0) ntabs[i].classList.add("active");
+  }
+
+  if(p==="compare") { loadGrid(); updateCompare(); }
+}
+
+function goHome(){ goPage("home"); }
+
+// ---- weapon grid ----
+function loadGrid(filter, c){
+  if(!filter) filter = "";
+  if(!c) c = cat;
+  var grid = document.getElementById("weaponGrid");
+  var nr = document.getElementById("noRes");
+  if(!grid) return;
+  var list = WEAPONS;
+  if(c!=="all") list = list.filter(function(w){ return w.type===c; });
+  if(filter) list = list.filter(function(w){ return w.name.toLowerCase().indexOf(filter.toLowerCase())>=0 || w.tname.indexOf(filter)>=0; });
+  if(list.length===0){ grid.innerHTML=""; nr.style.display="block"; return; }
+  nr.style.display="none";
+  var html = "";
+  for(var i=0; i<list.length; i++){
+    var w = list[i];
+    html += '<div class="weapon-card" onclick="pickWeapon(\''+w.id+'\')"><div class="card-img '+w.type+'"><img src="'+w.img+'" alt="'+w.name+'" style="height:54px"></div><div class="card-info"><div class="card-name">'+w.name+'</div><div class="card-type">'+w.tname+'</div></div></div>';
+  }
+  grid.innerHTML = html;
+}
+
+function doSearch(){ loadGrid(document.getElementById("searchInput").value, cat); }
+function setCat(c, el){ cat=c; document.querySelectorAll("#chips .chip").forEach(function(x){x.classList.remove("active");}); el.classList.add("active"); loadGrid(document.getElementById("searchInput").value, cat); }
+
+// ---- slot picking ----
+function pickSlot(n){
+  pickFor = n;
+  document.getElementById("slotA").classList.remove("pick");
+  document.getElementById("slotB").classList.remove("pick");
+  document.getElementById(n===0?"slotA":"slotB").classList.add("pick");
+}
+
+function pickWeapon(wid){
+  var idx = -1;
+  for(var i=0; i<WEAPONS.length; i++){ if(WEAPONS[i].id===wid){ idx=i; break; } }
+  if(idx<0) return;
+  slotIdx[pickFor] = idx;
+  pickFor = pickFor===0 ? 1 : 0;
+  updateCompare();
+  loadGrid(document.getElementById("searchInput").value, cat);
+}
+
+// ---- compare table ----
+function updateCompare(){
+  var w1 = WEAPONS[slotIdx[0]];
+  var w2 = WEAPONS[slotIdx[1]];
+  var sa = document.getElementById("slotA");
+  var sb = document.getElementById("slotB");
+  if(sa) sa.innerHTML = '<img src="'+w1.img+'" style="width:30px"><span>'+w1.name+'</span>';
+  if(sb) sb.innerHTML = '<img src="'+w2.img+'" style="width:30px"><span>'+w2.name+'</span>';
+
+  var attrs = [
+    {lab:"伤害",k:"dmg",unit:"",up:true},
+    {lab:"射速",k:"rate",unit:" RPM",up:true},
+    {lab:"后坐力",k:"recoil",unit:"",up:false},
+    {lab:"射程",k:"range",unit:"m",up:true},
+    {lab:"弹容量",k:"mag",unit:"发",up:true}
+  ];
+
+  var tbl = document.getElementById("cmpTable");
+  if(!tbl) return;
+
+  var s1=0, s2=0;
+  var rows = "";
+  for(var i=0; i<attrs.length; i++){
+    var a = attrs[i];
+    var v1 = w1[a.k], v2 = w2[a.k];
+    var badge="", cls="tie";
+    if(a.up){
+      if(v1>v2){ badge="W1"; cls="win1"; s1++; }
+      else if(v2>v1){ badge="W2"; cls="win2"; s2++; }
+      else { badge="持平"; }
+    } else {
+      if(v1<v2){ badge="W1"; cls="win1"; s1++; }
+      else if(v2<v1){ badge="W2"; cls="win2"; s2++; }
+      else { badge="持平"; }
+    }
+    rows += '<div class="cmp-row"><span class="cmp-lab">'+a.lab+'</span><span class="cmp-v1">'+v1+a.unit+'</span><span class="cmp-vs">VS</span><span class="cmp-v2">'+v2+a.unit+'</span><span class="cmp-badge '+cls+'">'+badge+'</span></div>';
+  }
+  var vc = s1>s2 ? "#4A90D9" : (s2>s1 ? "#E53935" : "rgba(255,255,255,0.4)");
+  var vt = s1>s2 ? w1.name+" 整体更强" : (s2>s1 ? w2.name+" 整体更强" : "双方持平");
+  tbl.innerHTML = rows + '<div style="text-align:center;margin-top:10px;font-weight:bold;font-size:13px;color:'+vc+'">'+w1.name+' '+s1+':'+s2+' '+w2.name+' · '+vt+'</div>';
+}
+
+// boot
+loadGrid();
+updateCompare();
+</script>
+</body>
+</html>
